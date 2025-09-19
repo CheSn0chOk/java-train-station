@@ -1,0 +1,65 @@
+public class TrainStation {
+    private String stationName;
+    private double ticketPrice;
+    private int totalSeats;
+    private int soldTickets;
+
+    public TrainStation(String stationName, double ticketPrice, int totalSeats) {
+        this.stationName = stationName;
+        this.ticketPrice = ticketPrice;
+        this.totalSeats = totalSeats;
+        this.soldTickets = 0;  // вначале типо 0 билетов продано
+    }
+
+    public void sellTicket() {
+        if (soldTickets < totalSeats) {
+            soldTickets++;
+        }
+    }
+
+    public double calculateUnsoldTicketsValue() {
+        int unsoldTickets = totalSeats - soldTickets;
+        return unsoldTickets * ticketPrice;
+    } // это расчёт общей стоимости не проданных билетов
+
+    public String getStationName() {
+        return stationName;
+    }
+
+    public void setStationName(String stationName) {
+        this.stationName = stationName;
+    }
+
+    public double getTicketPrice() {
+        return ticketPrice;
+    }
+
+    public void setTicketPrice(double ticketPrice) {
+        this.ticketPrice = ticketPrice;
+    }
+
+    public int getTotalSeats() {
+        return totalSeats;
+    }
+
+    public void setTotalSeats(int totalSeats) {
+        this.totalSeats = totalSeats;
+    }
+
+    public int getSoldTickets() {
+        return soldTickets;
+    }
+
+    public int getAvailableSeats() {
+        return totalSeats - soldTickets;
+    } // это кол-во свободных местечек
+
+    public void displayInfo() {
+        System.out.println("Станция: " + stationName);
+        System.out.println("Стоимость билета: " + ticketPrice + " руб.");
+        System.out.println("Всего мест: " + totalSeats);
+        System.out.println("Продано билетов: " + soldTickets);
+        System.out.println("Свободных мест: " + getAvailableSeats());
+        System.out.println("Стоимость непроданных билетов: " + calculateUnsoldTicketsValue() + " руб.");
+    }
+}

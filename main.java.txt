@@ -1,0 +1,114 @@
+import java.util.Scanner;
+public class Main {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("СИСТЕМА УПРАВЛЕНИЯ ВОКЗАЛОМ");
+
+        String stationName = "Московский вокзал";
+        System.out.println("Название вокзала: " + stationName);
+
+        double ticketPrice;
+        while (true) {
+            System.out.print("Введите стоимость одного билета: ");
+            if (scanner.hasNextDouble()) {
+                ticketPrice = scanner.nextDouble();
+                if (ticketPrice > 0) {
+                    break;
+                } else {
+                    System.out.println("Стоимость билета должна быть положительной(");
+                }
+            } else {
+                System.out.println("Стоимость выражается только в числах(. Введите число");
+                scanner.next();
+            }
+        }
+        int totalSeats;
+        while (true) {
+            System.out.print("Введите количество мест: ");
+            if (scanner.hasNextInt()) {
+                totalSeats = scanner.nextInt();
+                if (totalSeats > 0) {
+                    break;
+                } else {
+                    System.out.println("Количество мест должно быть положительным(");
+                }
+            } else {
+                System.out.println("Введите целое число");
+                scanner.next();
+            }
+        }
+        TrainStation station = new TrainStation(stationName, ticketPrice, totalSeats); //Объект вокзала
+
+        int soldTickets;
+        while (true) {
+            System.out.print("Введите количество проданных билетов: ");
+            if (scanner.hasNextInt()) {
+                soldTickets = scanner.nextInt();
+                if (soldTickets >= 0) {
+                    if (soldTickets <= totalSeats) {
+                        break;
+                    } else {
+                        System.out.println("Проданных билетов не может быть больше общего количества мест, а их " + totalSeats );
+                    }
+                } else {
+                    System.out.println("Количество билетов не может быть отрицательным(");
+                }
+            } else {
+                System.out.println("Введите целое число");
+                scanner.next();
+            }
+        }
+        for (int i = 0; i < soldTickets; i++) {
+            station.sellTicket();
+        }
+        station.displayInfo();
+
+        while (true) {
+            System.out.print("\nХотите продать еще билеты?");
+            String answer = scanner.next();
+
+            if (answer.equalsIgnoreCase("да")) {
+                int additionalTickets;
+                while (true) {
+                    System.out.print("Сколько билетов продать?: ");
+                    if (scanner.hasNextInt()) {
+                        additionalTickets = scanner.nextInt();
+                        if (additionalTickets >= 0) {
+                            int available = station.getAvailableSeats();
+                            if (additionalTickets <= available) {
+                                break;
+                            } else {
+                                System.out.println("Нельзя продать больше " + available + " билетов, у нас столько нет(");
+                            }
+                        } else {
+                            System.out.println("Количество билетов должно быть положительным");
+                        }
+                    } else {
+                        System.out.println("Введите целое число");
+                        scanner.next();
+                    }
+                }
+
+                for (int i = 0; i < additionalTickets; i++) {
+                    station.sellTicket(); //доп билеты
+                }
+
+                System.out.println("\nПосле продажи дополнительных билетов:");
+                station.displayInfo();
+                if (station.getAvailableSeats() == 0) {
+                    System.out.println("Все билеты проданы!");
+                    break;
+                }
+
+            } else if (answer.equalsIgnoreCase("нет")) {
+                break;
+            } else {
+                System.out.println("Пожалуйста введите да или нет");
+            }
+        }
+
+        System.out.println("\nРабочая смена окончена!)");
+        scanner.close();
+    }
+}
