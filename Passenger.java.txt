@@ -1,0 +1,18 @@
+public class Passenger {
+    private String passportNumber;
+    private String fullName;
+
+    public Passenger(String passportNumber, String fullName) {
+        this.passportNumber = passportNumber;
+        this.fullName = fullName;
+    }
+
+    // Геттеры
+    public String getPassportNumber() { return passportNumber; }
+    public String getFullName() { return fullName; }
+
+    @Override
+    public String toString() {
+        return fullName + " (паспорт: " + passportNumber + ")";
+    }
+}

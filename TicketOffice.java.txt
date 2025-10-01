@@ -1,0 +1,135 @@
+import java.util.*;
+
+public class TicketOffice {
+    // Singleton instance
+    private static TicketOffice instance;
+
+    // Данные системы
+    private Map<Direction, Double> tariffs;
+    private List<Ticket> tickets;
+    private List<Passenger> passengers;
+
+    // Приватный конструктор (Singleton)
+    private TicketOffice() {
+        tariffs = new HashMap<>();
+        tickets = new ArrayList<>();
+        passengers = new ArrayList<>();
+        initializeDefaultTariffs();
+    }
+
+    // Метод для получения единственного экземпляра
+    public static TicketOffice getInstance() {
+        if (instance == null) {
+            instance = new TicketOffice();
+        }
+        return instance;
+    }
+
+    // Инициализация тарифов по умолчанию
+    private void initializeDefaultTariffs() {
+        tariffs.put(Direction.MOSCOW, 1500.0);
+        tariffs.put(Direction.SAINT_PETERSBURG, 1200.0);
+        tariffs.put(Direction.SOCHI, 3500.0);
+        tariffs.put(Direction.KAZAN, 1800.0);
+        tariffs.put(Direction.EKATERINBURG, 2500.0);
+        tariffs.put(Direction.NOVOSIBIRSK, 4500.0);
+        tariffs.put(Direction.KRASNODAR, 2800.0);
+        tariffs.put(Direction.ROSTOV, 2200.0);
+    }
+
+    // Методы для работы с тарифами
+    public void setTariff(Direction direction, double price) {
+        if (price <= 0) {
+            System.out.println("Ошибка! Стоимость тарифа должна быть положительной.");
+        } else if (price > 10000) {
+            System.out.println("Ошибка! Слишком большая стоимость (" + price + " руб.). Максимальная цена билета: 10 000 руб.");
+        } else {
+            tariffs.put(direction, price);
+            System.out.println("Тариф на направление " + direction + " установлен: " + price + " руб.");
+        }
+    }
+
+    public double getTariff(Direction direction) {
+        return tariffs.getOrDefault(direction, 0.0);
+    }
+
+    public void displayAllTariffs() {
+        System.out.println("\n=== ТАРИФЫ НА НАПРАВЛЕНИЯ ===");
+        for (Map.Entry<Direction, Double> entry : tariffs.entrySet()) {
+            System.out.println(entry.getKey() + ": " + entry.getValue() + " руб.");
+        }
+        System.out.println("=============================");
+    }
+
+    // Методы для работы с пассажирами
+    public void addPassenger(Passenger passenger) {
+        passengers.add(passenger);
+    }
+
+    public Passenger findPassengerByPassport(String passportNumber) {
+        for (Passenger passenger : passengers) {
+            if (passenger.getPassportNumber().equals(passportNumber)) {
+                return passenger;
+            }
+        }
+        return null;
+    }
+
+    // Методы для работы с билетами
+    public boolean sellTicket(Passenger passenger, Direction direction) {
+        double price = getTariff(direction);
+        if (price > 0) {
+            Ticket ticket = new Ticket(passenger, direction, price);
+            tickets.add(ticket);
+            System.out.println("Билет продан: " + ticket);
+            return true;
+        } else {
+            System.out.println("Ошибка! Тариф на направление " + direction + " не установлен.");
+            return false;
+        }
+    }
+
+    public double calculateTotalCostForPassenger(Passenger passenger) {
+        double total = 0.0;
+        for (Ticket ticket : tickets) {
+            if (ticket.getPassenger().equals(passenger)) {
+                total += ticket.getPrice();
+            }
+        }
+        return total;
+    }
+
+    public void displayPassengersByDirection(Direction direction) {
+        System.out.println("\n=== ПАССАЖИРЫ НАПРАВЛЕНИЯ: " + direction + " ===");
+        boolean found = false;
+        for (Ticket ticket : tickets) {
+            if (ticket.getDirection() == direction) {
+                System.out.println(ticket.getPassenger());
+                found = true;
+            }
+        }
+        if (!found) {
+            System.out.println("На это направление билеты не продавались.");
+        }
+        System.out.println("=================================");
+    }
+
+    public void displayAllTickets() {
+        System.out.println("\n=== ВСЕ ПРОДАННЫЕ БИЛЕТЫ ===");
+        if (tickets.isEmpty()) {
+            System.out.println("Билетов нет.");
+        } else {
+            for (Ticket ticket : tickets) {
+                System.out.println(ticket);
+            }
+        }
+        System.out.println("============================");
+    }
+
+    // Деструктор (для Java это метод cleanup)
+    public void cleanup() {
+        tickets.clear();
+        passengers.clear();
+        System.out.println("Система очищена.");
+    }
+}

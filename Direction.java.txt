@@ -1,0 +1,25 @@
+public enum Direction {
+    MOSCOW("Москва"),
+    SAINT_PETERSBURG("Санкт-Петербург"),
+    SOCHI("Сочи"),
+    KAZAN("Казань"),
+    EKATERINBURG("Екатеринбург"),
+    NOVOSIBIRSK("Новосибирск"),
+    KRASNODAR("Краснодар"),
+    ROSTOV("Ростов-на-Дону");
+
+    private final String displayName;
+
+    Direction(String displayName) {
+        this.displayName = displayName;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    @Override
+    public String toString() {
+        return displayName;
+    }
+}

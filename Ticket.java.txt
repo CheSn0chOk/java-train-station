@@ -1,0 +1,23 @@
+public class Ticket {
+    private Passenger passenger;
+    private Direction direction;
+    private double price;
+
+    public Ticket(Passenger passenger, Direction direction, double price) {
+        this.passenger = passenger;
+        this.direction = direction;
+        this.price = price;
+    }
+
+    // Геттеры
+    public Passenger getPassenger() { return passenger; }
+    public Direction getDirection() { return direction; }
+    public double getPrice() { return price; }
+
+    @Override
+    public String toString() {
+        return "Билет: " + direction.getDisplayName() +
+                " | Пассажир: " + passenger.getFullName() +
+                " | Стоимость: " + price + " руб.";
+    }
+}
