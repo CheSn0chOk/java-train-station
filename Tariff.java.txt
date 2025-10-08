@@ -1,0 +1,47 @@
+public abstract class Tariff {
+    protected String destination;
+    protected double basePrice;
+    protected DiscountStrategy discountStrategy;
+
+    public Tariff(String destination, double basePrice, DiscountStrategy discountStrategy) {
+        if (destination == null || destination.trim().isEmpty()) {
+            throw new IllegalArgumentException("Направление не может быть пустым");
+        }
+        if (basePrice <= 0) {
+            throw new IllegalArgumentException("Базовая цена должна быть положительной");
+        }
+        if (discountStrategy == null) {
+            throw new IllegalArgumentException("Стратегия скидки не может быть null");
+        }
+
+        this.destination = destination;
+        this.basePrice = basePrice;
+        this.discountStrategy = discountStrategy;
+    }
+
+    public double getFinalPrice() {
+        return discountStrategy.applyDiscount(basePrice);
+    }
+
+    public abstract String getDetails();
+
+    // Геттеры
+    public String getDestination() {
+        return destination;
+    }
+
+    public double getBasePrice() {
+        return basePrice;
+    }
+
+    public DiscountStrategy getDiscountStrategy() {
+        return discountStrategy;
+    }
+
+    public void setDiscountStrategy(DiscountStrategy discountStrategy) {
+        if (discountStrategy == null) {
+            throw new IllegalArgumentException("Стратегия скидки не может быть null");
+        }
+        this.discountStrategy = discountStrategy;
+    }
+}

@@ -1,0 +1,399 @@
+import java.util.List;
+import java.util.Scanner;
+
+public class Main {
+    private static Station station;
+    private static Scanner scanner;
+
+    public static void main(String[] args) {
+        scanner = new Scanner(System.in);
+        initializeStation();
+        showMenu();
+    }
+
+    private static void initializeStation() {
+        try {
+            station = new Station("Центральный");
+            station.addTariff(new StandardTariff("Москва", 1500, 5.5, new NoDiscount()));
+            station.addTariff(new StandardTariff("Санкт-Петербург", 1200, 6.0, new NoDiscount()));
+            station.addTariff(new StandardTariff("Казань", 800, 4.5, new NoDiscount()));
+            station.addTariff(new ExpressTariff("Москва", 2000, 3.5, new NoDiscount()));
+            station.addTariff(new ExpressTariff("Санкт-Петербург", 1800, 4.0, new NoDiscount()));
+            station.addTariff(new ExpressTariff("Казань", 1200, 2.5, new NoDiscount()));
+
+            System.out.println("Вокзал инициализирован с начальными тарифами (без скидок)!");
+        } catch (Exception e) {
+            System.err.println("Ошибка инициализации: " + e.getMessage());
+        }
+    }
+
+    private static void showMenu() {
+        while (true) {
+            System.out.println("\n=== МЕНЮ ВОКЗАЛА ===");
+            System.out.println("1. Показать все тарифы");
+            System.out.println("2. Добавить новый тариф");
+            System.out.println("3. Изменить тариф (цену или скидку)");
+            System.out.println("4. Показать самый дешёвый тариф");
+            System.out.println("5. Поиск тарифов по направлению");
+            System.out.println("0. Выход");
+            System.out.print("Выберите действие: ");
+
+            try {
+                int choice = scanner.nextInt();
+                scanner.nextLine();
+
+                switch (choice) {
+                    case 1 -> showAllTariffs();
+                    case 2 -> addNewTariff();
+                    case 3 -> modifyTariff();
+                    case 4 -> showCheapestTariff();
+                    case 5 -> searchByDestination();
+                    case 0 -> {
+                        System.out.println("До свидания!");
+                        return;
+                    }
+                    default -> System.out.println("Неверный выбор! Попробуйте снова.");
+                }
+            } catch (Exception e) {
+                System.out.println("Ошибка ввода! Пожалуйста, введите число.");
+                scanner.nextLine();
+            }
+        }
+    }
+
+    private static void showAllTariffs() {
+        System.out.println("\n=== ВСЕ ТАРИФЫ ===");
+        List<Tariff> tariffs = station.getTariffs();
+
+        if (tariffs.isEmpty()) {
+            System.out.println("Тарифы не найдены.");
+            return;
+        }
+
+        for (int i = 0; i < tariffs.size(); i++) {
+            System.out.println((i + 1) + ". " + tariffs.get(i).getDetails());
+        }
+    }
+    private static String validateDestination() {
+        System.out.print("Введите направление: ");
+        String destination = scanner.nextLine().trim();
+
+        if (destination.isEmpty()) {
+            throw new IllegalArgumentException("Направление не может быть пустым!");
+        }
+
+        boolean hasLetters = destination.chars().anyMatch(Character::isLetter);
+        if (!hasLetters) {
+            throw new IllegalArgumentException("Направление должно содержать буквы!");
+        }
+
+        return destination;
+    }
+
+    private static double validatePrice() {
+        try {
+            System.out.print("Введите базовую цену: ");
+            double price = scanner.nextDouble();
+            scanner.nextLine();
+
+            if (price <= 0) {
+                throw new IllegalArgumentException("Цена должна быть положительной!");
+            }
+            if (price > 300000) {
+                throw new IllegalArgumentException("Цена не может превышать 300 000 руб.!");
+            }
+
+            return price;
+        } catch (java.util.InputMismatchException e) {
+            scanner.nextLine();
+            throw new IllegalArgumentException("Введите корректное число для цены!");
+        }
+    }
+
+    private static double validateDuration() {
+        try {
+            System.out.print("Введите продолжительность поездки (часы, можно дробное, минимум 0.5 ч.): ");
+            double duration = scanner.nextDouble();
+            scanner.nextLine();
+
+            if (duration < 0.5) {
+                throw new IllegalArgumentException("Продолжительность должна быть не менее 0.5 часа (30 минут)!");
+            }
+
+            return duration;
+        } catch (java.util.InputMismatchException e) {
+            scanner.nextLine();
+            throw new IllegalArgumentException("Введите число для продолжительности (например: 1.5)!");
+        }
+    }
+
+    private static double validateExpressDuration(String destination) {
+        try {
+            System.out.print("Введите продолжительность поездки (часы, можно дробное, минимум 0.5 ч.): ");
+            double duration = scanner.nextDouble();
+            scanner.nextLine();
+
+            if (duration < 0.5) {
+                throw new IllegalArgumentException("Продолжительность должна быть не менее 0.5 часа (30 минут)!");
+            }
+
+            if (station.tariffExists(destination, "standard")) {
+                List<Tariff> standardTariffs = station.getTariffsByDestination(destination);
+                double standardDuration = -1;
+                for (Tariff tariff : standardTariffs) {
+                    if (tariff instanceof StandardTariff) {
+                        standardDuration = ((StandardTariff) tariff).getDuration();
+                        break;
+                    }
+                }
+
+                if (standardDuration > 0 && duration >= standardDuration) {
+                    throw new IllegalArgumentException("Продолжительность экспресс тарифа (" + duration +
+                            " ч.) должна быть меньше продолжительности стандартного тарифа (" +
+                            standardDuration + " ч.) для этого направления!");
+                }
+            }
+
+            return duration;
+        } catch (java.util.InputMismatchException e) {
+            scanner.nextLine();
+            throw new IllegalArgumentException("Введите число для продолжительности (например: 1.5)!");
+        }
+    }
+
+    private static void addNewTariff() {
+        try {
+            System.out.println("\n=== ДОБАВЛЕНИЕ НОВОГО ТАРИФA ===");
+
+            String destination = validateDestination();
+
+            double basePrice = validatePrice();
+
+            int tariffType;
+            while (true) {
+                System.out.print("Выберите тип тарифа (1 - Стандартный, 2 - Экспресс): ");
+                try {
+                    tariffType = scanner.nextInt();
+                    scanner.nextLine();
+
+                    if (tariffType != 1 && tariffType != 2) {
+                        throw new IllegalArgumentException("Выберите 1 или 2!");
+                    }
+                    break;
+                } catch (java.util.InputMismatchException e) {
+                    scanner.nextLine();
+                    throw new IllegalArgumentException("Введите 1 или 2!");
+                }
+            }
+
+            String tariffTypeName = (tariffType == 1) ? "standard" : "express";
+            if (station.tariffExists(destination, tariffTypeName)) {
+                String typeName = (tariffType == 1) ? "Стандартный" : "Экспресс";
+                throw new IllegalArgumentException(typeName + " тариф до города " + destination + " уже существует!");
+            }
+
+            DiscountStrategy discount = new NoDiscount();
+
+            Tariff newTariff;
+            if (tariffType == 1) {
+
+                double duration = validateDuration();
+                newTariff = new StandardTariff(destination, basePrice, duration, discount);
+            } else {
+
+                double duration = validateExpressDuration(destination);
+                newTariff = new ExpressTariff(destination, basePrice, duration, discount);
+            }
+
+
+            boolean added = station.addTariff(newTariff);
+            if (added) {
+                System.out.println("Тариф успешно добавлен (без скидки)!");
+            } else {
+                throw new IllegalArgumentException("Такой тариф уже существует!");
+            }
+
+        } catch (IllegalArgumentException e) {
+            System.out.println("Ошибка: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Неожиданная ошибка при добавлении тарифа: " + e.getMessage());
+        }
+    }
+
+    private static void modifyTariff() {
+        try {
+            System.out.println("\n=== ИЗМЕНЕНИЕ ТАРИФА ===");
+            List<Tariff> tariffs = station.getTariffs();
+
+            if (tariffs.isEmpty()) {
+                System.out.println("Нет тарифов для изменения.");
+                return;
+            }
+
+            showAllTariffs();
+
+            int tariffNumber;
+            while (true) {
+                System.out.print("Выберите номер тарифа для изменения: ");
+                try {
+                    tariffNumber = scanner.nextInt();
+                    scanner.nextLine();
+
+                    if (tariffNumber < 1 || tariffNumber > tariffs.size()) {
+                        throw new IllegalArgumentException("Введите номер от 1 до " + tariffs.size() + "!");
+                    }
+                    break;
+                } catch (java.util.InputMismatchException e) {
+                    scanner.nextLine();
+                    throw new IllegalArgumentException("Введите корректный номер!");
+                }
+            }
+
+            Tariff selectedTariff = tariffs.get(tariffNumber - 1);
+
+            System.out.println("Выбран тариф: " + selectedTariff.getDetails());
+
+
+            int modificationChoice;
+            while (true) {
+                System.out.println("\nЧто вы хотите изменить?");
+                System.out.println("1. Изменить скидку");
+                System.out.println("2. Изменить базовую цену");
+                System.out.print("Ваш выбор: ");
+
+                try {
+                    modificationChoice = scanner.nextInt();
+                    scanner.nextLine();
+
+                    if (modificationChoice != 1 && modificationChoice != 2) {
+                        throw new IllegalArgumentException("Выберите 1 или 2!");
+                    }
+                    break;
+                } catch (java.util.InputMismatchException e) {
+                    scanner.nextLine();
+                    throw new IllegalArgumentException("Введите 1 или 2!");
+                }
+            }
+
+            if (modificationChoice == 1) {
+
+                DiscountStrategy newDiscount = chooseDiscountStrategy();
+
+                boolean isSameDiscount = false;
+
+                if (selectedTariff.getDiscountStrategy() instanceof NoDiscount && newDiscount instanceof NoDiscount) {
+                    isSameDiscount = true;
+                } else if (selectedTariff.getDiscountStrategy() instanceof PercentDiscount && newDiscount instanceof PercentDiscount) {
+                    double currentPercent = ((PercentDiscount) selectedTariff.getDiscountStrategy()).getPercent();
+                    double newPercent = ((PercentDiscount) newDiscount).getPercent();
+                    isSameDiscount = Math.abs(currentPercent - newPercent) < 0.01;
+                } else if (selectedTariff.getDiscountStrategy() instanceof NoDiscount && newDiscount instanceof PercentDiscount) {
+
+                    isSameDiscount = false;
+                } else if (selectedTariff.getDiscountStrategy() instanceof PercentDiscount && newDiscount instanceof NoDiscount) {
+
+                    isSameDiscount = false;
+                }
+
+                if (isSameDiscount) {
+                    throw new IllegalArgumentException("Новая скидка должна отличаться от текущей!");
+                }
+
+                selectedTariff.setDiscountStrategy(newDiscount);
+                System.out.println("Скидка успешно изменена!");
+            } else {
+
+                double currentPrice = selectedTariff.getBasePrice();
+                double newPrice = validatePrice();
+
+                if (Math.abs(newPrice - currentPrice) < 0.01) {
+                    throw new IllegalArgumentException("Новая цена должна отличаться от текущей (" + currentPrice + " руб.)!");
+                }
+
+                boolean success = station.updateTariffPrice(tariffNumber - 1, newPrice);
+                if (success) {
+                    System.out.println("Базовая цена успешно изменена!");
+                } else {
+                    throw new IllegalArgumentException("Ошибка при изменении цены!");
+                }
+            }
+
+            System.out.println("Обновленный тариф: " + station.getTariffs().get(tariffNumber - 1).getDetails());
+
+        } catch (IllegalArgumentException e) {
+            System.out.println("Ошибка: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Ошибка при изменении тарифа: " + e.getMessage());
+        }
+    }
+
+    private static DiscountStrategy chooseDiscountStrategy() {
+        int discountChoice;
+        while (true) {
+            System.out.println("Выберите тип скидки:");
+            System.out.println("1. Без скидки");
+            System.out.println("2. Процентная скидка");
+            System.out.print("Ваш выбор: ");
+
+            try {
+                discountChoice = scanner.nextInt();
+                scanner.nextLine();
+
+                if (discountChoice != 1 && discountChoice != 2) {
+                    throw new IllegalArgumentException("Выберите 1 или 2!");
+                }
+                break;
+            } catch (java.util.InputMismatchException e) {
+                scanner.nextLine();
+                throw new IllegalArgumentException("Введите 1 или 2!");
+            }
+        }
+
+        if (discountChoice == 2) {
+            try {
+                System.out.print("Введите размер скидки в процентах (от 1% до 50%): ");
+                double percent = scanner.nextDouble();
+                scanner.nextLine();
+
+                if (percent < 1 || percent > 50) {
+                    throw new IllegalArgumentException("Скидка должна быть от 1 до 50%!");
+                }
+                return new PercentDiscount(percent);
+            } catch (java.util.InputMismatchException e) {
+                scanner.nextLine();
+                throw new IllegalArgumentException("Введите корректное число для скидки!");
+            }
+        }
+
+        return new NoDiscount();
+    }
+
+    private static void showCheapestTariff() {
+        System.out.println("\n=== САМЫЙ ДЕШЕВЫЙ ТАРИФ ===");
+        station.findCheapestDestination().ifPresentOrElse(
+                tariff -> System.out.println("Самый дешевый тариф: " + tariff.getDetails()),
+                () -> System.out.println("Тарифы не найдены")
+        );
+    }
+
+    private static void searchByDestination() {
+        try {
+            System.out.println("\n=== ПОИСК ПО НАПРАВЛЕНИЮ ===");
+
+            String destination = validateDestination();
+
+            List<Tariff> foundTariffs = station.getTariffsByDestination(destination);
+
+            if (foundTariffs.isEmpty()) {
+                System.out.println("Тарифы по направлению '" + destination + "' не найдены.");
+            } else {
+                System.out.println("Найдено тарифов: " + foundTariffs.size());
+                for (Tariff tariff : foundTariffs) {
+                    System.out.println("• " + tariff.getDetails());
+                }
+            }
+        } catch (IllegalArgumentException e) {
+            System.out.println("Ошибка: " + e.getMessage());
+        }
+    }
+}

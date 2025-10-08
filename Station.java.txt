@@ -1,0 +1,158 @@
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+public class Station {
+    private String name;
+    private List<Tariff> tariffs;
+
+    public Station(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Название вокзала не может быть пустым");
+        }
+        this.name = name;
+        this.tariffs = new ArrayList<>();
+    }
+
+    public boolean tariffExists(String destination, String tariffType) {
+        for (Tariff tariff : tariffs) {
+            if (tariff.getDestination().equalsIgnoreCase(destination)) {
+                if (tariffType.equals("standard") && tariff instanceof StandardTariff) {
+                    return true;
+                }
+                if (tariffType.equals("express") && tariff instanceof ExpressTariff) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean addTariff(Tariff tariff) {
+        if (tariff == null) {
+            throw new IllegalArgumentException("Тариф не может быть null");
+        }
+
+
+        double duration;
+        if (tariff instanceof StandardTariff) {
+            duration = ((StandardTariff) tariff).getDuration();
+        } else {
+            duration = ((ExpressTariff) tariff).getDuration();
+        }
+
+        if (duration < 0.5) {
+            throw new IllegalArgumentException("Продолжительность должна быть не менее 0.5 часа");
+        }
+
+        String tariffType = (tariff instanceof StandardTariff) ? "standard" : "express";
+
+        if (tariffExists(tariff.getDestination(), tariffType)) {
+            return false;
+        }
+
+        tariffs.add(tariff);
+        return true;
+    }
+
+    public boolean updateTariffPrice(int index, double newPrice) {
+        if (index < 0 || index >= tariffs.size()) {
+            return false;
+        }
+        if (newPrice <= 0) {
+            return false;
+        }
+        if (newPrice > 300000) {
+            return false;
+        }
+
+        Tariff tariff = tariffs.get(index);
+
+        Tariff updatedTariff;
+        if (tariff instanceof StandardTariff) {
+            StandardTariff std = (StandardTariff) tariff;
+            updatedTariff = new StandardTariff(
+                    std.getDestination(),
+                    newPrice,
+                    std.getDuration(),
+                    std.getDiscountStrategy()
+            );
+        } else {
+            ExpressTariff exp = (ExpressTariff) tariff;
+            updatedTariff = new ExpressTariff(
+                    exp.getDestination(),
+                    newPrice,
+                    exp.getDuration(),
+                    exp.getDiscountStrategy()
+            );
+        }
+
+        tariffs.set(index, updatedTariff);
+        return true;
+    }
+
+    public boolean addTariffWithDiscount(Tariff tariff, double discountPercent) {
+        if (tariff == null) {
+            throw new IllegalArgumentException("Тариф не может быть null");
+        }
+
+
+        double duration;
+        if (tariff instanceof StandardTariff) {
+            duration = ((StandardTariff) tariff).getDuration();
+        } else {
+            duration = ((ExpressTariff) tariff).getDuration();
+        }
+
+        if (duration < 0.5) {
+            throw new IllegalArgumentException("Продолжительность должна быть не менее 0.5 часа");
+        }
+
+
+        if (discountPercent < 1 || discountPercent > 50) {
+            throw new IllegalArgumentException("Скидка должна быть от 1 до 50%");
+        }
+
+        String tariffType = (tariff instanceof StandardTariff) ? "standard" : "express";
+
+        if (tariffExists(tariff.getDestination(), tariffType)) {
+            return false;
+        }
+
+        tariff.setDiscountStrategy(new PercentDiscount(discountPercent));
+        tariffs.add(tariff);
+        return true;
+    }
+
+    public Optional<Tariff> findCheapestDestination() {
+        return tariffs.stream()
+                .min((t1, t2) -> Double.compare(t1.getFinalPrice(), t2.getFinalPrice()));
+    }
+
+    public List<Tariff> getTariffsByDestination(String destination) {
+        if (destination == null || destination.trim().isEmpty()) {
+            throw new IllegalArgumentException("Направление не может быть пустым");
+        }
+
+        List<Tariff> result = new ArrayList<>();
+        for (Tariff tariff : tariffs) {
+            if (tariff.getDestination().equalsIgnoreCase(destination)) {
+                result.add(tariff);
+            }
+        }
+        return result;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public List<Tariff> getTariffs() {
+        return new ArrayList<>(tariffs);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Вокзал '%s' (тарифов: %d)", name, tariffs.size());
+    }
+}

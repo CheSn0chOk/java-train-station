@@ -1,0 +1,24 @@
+public class PercentDiscount implements DiscountStrategy {
+    private double percent;
+
+    public PercentDiscount(double percent) {
+        if (percent < 1 || percent > 50) { // Изменили с 0 на 1
+            throw new IllegalArgumentException("Процент скидки должен быть от 1 до 50");
+        }
+        this.percent = percent;
+    }
+
+    @Override
+    public double applyDiscount(double price) {
+        return price * (1 - percent / 100);
+    }
+
+    @Override
+    public String getDiscountDescription() {
+        return String.format("Скидка %.1f%%", percent);
+    }
+
+    public double getPercent() {
+        return percent;
+    }
+}

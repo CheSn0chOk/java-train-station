@@ -1,0 +1,21 @@
+public class StandardTariff extends Tariff {
+    private double duration;
+
+    public StandardTariff(String destination, double basePrice, double duration, DiscountStrategy discountStrategy) {
+        super(destination, basePrice, discountStrategy);
+        if (duration <= 0) {
+            throw new IllegalArgumentException("Продолжительность должна быть положительной");
+        }
+        this.duration = duration;
+    }
+
+    @Override
+    public String getDetails() {
+        return String.format("Стандартный тариф до %s: базовая цена %.2f руб., продолжительность %.1f ч., %s, итого: %.2f руб.",
+                destination, basePrice, duration, discountStrategy.getDiscountDescription(), getFinalPrice());
+    }
+
+    public double getDuration() {
+        return duration;
+    }
+}
