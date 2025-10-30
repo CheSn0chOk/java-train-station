@@ -1,0 +1,188 @@
+#include <iostream>
+#include <string>
+#include <locale>
+
+using namespace std;
+
+// Базовый класс - животное
+class Animal {
+protected:
+    string name;
+public:
+    Animal(const string& name) : name(name) {
+        cout << "Создано животное: " << name << endl;
+    }
+
+    void breathe() {
+        cout << name << " дышит" << endl;
+    }
+
+    void eat() {
+        cout << name << " ест" << endl;
+    }
+};
+
+// Птица - наследует от Animal
+class Bird : public Animal {
+public:
+    Bird(const string& name) : Animal(name) {
+        cout << "Создана птица: " << name << endl;
+    }
+
+    void fly() {
+        cout << name << " летает в небе" << endl;
+    }
+};
+
+// Рыба - тоже наследует от Animal  
+class Fish : public Animal {
+public:
+    Fish(const string& name) : Animal(name) {
+        cout << "Создана рыба: " << name << endl;
+    }
+
+    void swim() {
+        cout << name << " плавает в воде" << endl;
+    }
+};
+
+// Летающая рыба - наследует и от Bird и от Fish! (ПРОБЛЕМА)
+class FlyingFish : public Bird, public Fish {
+public:
+    FlyingFish(const string& name) : Bird(name + " (птица)"), Fish(name + " (рыба)") {
+        cout << "Создана летающая рыба: " << name << endl;
+    }
+
+    void showAbilities() {
+        cout << "\n=== Летающая рыба демонстрирует способности ===" << endl;
+        cout << "Со стороны птицы:" << endl;
+        Bird::breathe();  // ПРОБЛЕМА: нужно явно указывать!
+        Bird::eat();
+        fly();
+
+        cout << "\nСо стороны рыбы:" << endl;
+        Fish::breathe(); 
+        Fish::eat();
+        swim();
+    }
+
+    void demonstrateProblem() {
+        cout << "\n=== ДЕМОНСТРАЦИЯ ПРОБЛЕМЫ РОМБА ===" << endl;
+        cout << "Проблема: у летающей рыбы два разных имени!" << endl;
+        cout << "Имя птицы: " << Bird::name << endl;
+        cout << "Имя рыбы: " << Fish::name << endl;
+        cout << "Поэтому нужно явно указывать Bird:: или Fish::" << endl;
+        cout << "Создано два разных животных!" << endl;
+    }
+};
+
+// РЕШЕНИЕ ПРОБЛЕМЫ: ВИРТУАЛЬНОЕ НАСЛЕДОВАНИЕ
+
+// Базовый класс для решения
+class AnimalVirtual {
+protected:
+    string name;
+public:
+    AnimalVirtual(const string& name) : name(name) {
+        cout << "Создано животное (virtual): " << name << endl;
+    }
+
+    void breathe() {
+        cout << name << " дышит" << endl;
+    }
+
+    void eat() {
+        cout << name << " ест" << endl;
+    }
+};
+
+// Виртуальное наследование - РЕШЕНИЕ!
+class BirdVirtual : virtual public AnimalVirtual {
+public:
+    BirdVirtual(const string& name) : AnimalVirtual(name) {
+        cout << "Создана птица (virtual): " << name << endl;
+    }
+
+    void fly() {
+        cout << name << " летает в небе" << endl;
+    }
+};
+
+// Виртуальное наследование - РЕШЕНИЕ!
+class FishVirtual : virtual public AnimalVirtual {
+public:
+    FishVirtual(const string& name) : AnimalVirtual(name) {
+        cout << "Создана рыба (virtual): " << name << endl;
+    }
+
+    void swim() {
+        cout << name << " плавает в воде" << endl;
+    }
+};
+
+// Летающая рыба с РЕШЕНИЕМ проблемы!
+class FlyingFishSolved : public BirdVirtual, public FishVirtual {
+public:
+    // Теперь передаем имя в AnimalVirtual напрямую
+    FlyingFishSolved(const string& name) : AnimalVirtual(name), BirdVirtual(name), FishVirtual(name) {
+        cout << "Создана летающая рыба (решение): " << name << endl;
+    }
+
+    void showAbilitiesSolved() {
+        cout << "\n=== РЕШЕНИЕ: Летающая рыба демонстрирует способности ===" << endl;
+        breathe();  // ← РЕШЕНИЕ: можно вызывать БЕЗ явного указания!
+        eat();      // ← РЕШЕНИЕ: можно вызывать БЕЗ явного указания!
+        fly();
+        swim();
+
+        cout << "\nТеперь у животного одно имя: " << name << endl;
+    }
+
+    void demonstrateSolution() {
+        cout << "\n=== ДЕМОНСТРАЦИЯ РЕШЕНИЯ ===" << endl;
+        cout << "Решение: виртуальное наследование (virtual public)" << endl;
+        cout << "Теперь создается только ОДИН экземпляр базового класса!" << endl;
+        cout << "Нет неоднозначности - можно вызывать методы напрямую!" << endl;
+    }
+};
+
+// Главная функция
+int main() {
+    setlocale(LC_ALL, "Russian");
+
+    cout << "Упражнение1: Множественное наследование в C++" << endl;
+    cout << "=============================================" << endl;
+
+    // Часть 1: Демонстрация проблемы
+    cout << "\n*** ЧАСТЬ 1: ДЕМОНСТРАЦИЯ ПРОБЛЕМЫ РОМБА ***" << endl;
+
+    cout << "\n1. Создаем птицу:" << endl;
+    Bird pigeon("Голубь");
+    pigeon.breathe();
+    pigeon.fly();
+
+    cout << "\n2. Создаем рыбу:" << endl;
+    Fish salmon("Лосось");
+    salmon.breathe();
+    salmon.swim();
+
+    cout << "\n3. Создаем летающую рыбу (ПРОБЛЕМА):" << endl;
+    FlyingFish superFish("Летающая рыба");
+    superFish.showAbilities();
+    superFish.demonstrateProblem();
+
+    // Часть 2: Демонстрация решения
+    cout << "\n\n*** ЧАСТЬ 2: РЕШЕНИЕ ПРОБЛЕМЫ ***" << endl;
+
+    cout << "\n4. Создаем летающую рыбу (РЕШЕНИЕ):" << endl;
+    FlyingFishSolved superFishSolved("Летающая рыба");
+    superFishSolved.showAbilitiesSolved();
+    superFishSolved.demonstrateSolution();
+
+    cout << "\n=============================================" << endl;
+    cout << "Программа завершена успешно!" << endl;
+    cout << "Показаны и проблема ромба, и её решение!" << endl;
+
+    system("pause");
+    return 0;
+}
