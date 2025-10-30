@@ -1,0 +1,19 @@
+Passenge.java
+public class Passenger {
+    private String name;
+    private String passportNumber;
+    private int age;
+
+    // Конструктор
+    public Passenger(String name, String passportNumber, int age) {
+        this.name = name;
+        this.passportNumber = passportNumber;
+        this.age = age;
+    }
+
+    // Геттеры
+    public String getName() { return name; }
+    public String getPassportNumber() { return passportNumber; }
+    public int getAge() { return age; }
+
+}
