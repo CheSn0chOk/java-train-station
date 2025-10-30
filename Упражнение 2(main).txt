@@ -1,0 +1,23 @@
+Main.java
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("Упражнение 2: Переопределение операторов в Java");
+        System.out.println("==============================================");
+
+        ComplexNumber a = new ComplexNumber(3, 4);
+        ComplexNumber b = new ComplexNumber(1, 2);
+
+        System.out.println("a = " + a);
+        System.out.println("b = " + b);
+
+        System.out.println("\nДемонстрация перегрузки методов:");
+        System.out.println("a + b = " + a.add(b));
+        System.out.println("a + 5 = " + a.add(5));
+
+        System.out.println("a - b = " + a.subtract(b));
+        System.out.println("a * b = " + a.multiply(b));
+    }
+}
+
+
+
